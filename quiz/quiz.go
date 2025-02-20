@@ -27,7 +27,7 @@ func FromFile(file *os.File) Problems{
   records, err := reader.ReadAll();
   
   if err != nil {
-    panic("Cant parse file")
+    panic(fmt.Errorf("Can't parse file. Err: %w", err))
   }
   for _, val := range records{
     ans, _ := strconv.ParseInt(val[1], 10, 8)
@@ -49,32 +49,38 @@ func timer(secs_for_quiz int, ch chan bool) {
 func game(){
   
   ch := make(chan bool)
+  answCh := make(chan int)
 
-  file, err := os.Open("problems.csv")
+  file, err := os.Open("quiz/problems.csv")
   defer file.Close()
   if err != nil{
-    panic("Cant open file with opening file");
+    panic(fmt.Errorf("Can't open file. Err: %w", err))
   }
 
   var problems Problems = FromFile(file);
   var total_right_answers int = 0;
   var total_wrong_answers int = 0;
-  var user_answer int;
 
   fmt.Println("Game started. Please, answer the questions");
 
   go timer(5, ch)
-
+  
   for _, problem := range problems.problems{
+    go func() {
+      var user_answer int;
+      fmt.Println(problem.question);
+      fmt.Scanln(&user_answer)
+      answCh <- user_answer;
+    }()
+
     select {
     case is_game_finished := <-ch:
       if is_game_finished == true{
         fmt.Println("Time is up! U lost!")
         return
       }
-    default:
-      fmt.Println(problem.question);
-      fmt.Scanln(&user_answer);
+
+    case user_answer := <- answCh:
       if user_answer == problem.answer {
         total_right_answers++;
       } else {
