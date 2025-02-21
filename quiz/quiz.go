@@ -18,7 +18,7 @@ type Problems struct {
 	problems []Problem
 }
 
-func FromFile(file *os.File) Problems {
+func fromFile(file *os.File) Problems {
 	var problems Problems
 
 	reader := csv.NewReader(file)
@@ -48,6 +48,14 @@ func timer(secsForQuiz int, ch chan bool) {
 	ch <- true
 }
 
+func prepareRules() (filePath *string, secsForQuiz *int) {
+	filePath = flag.String("filePath", "problems.csv", "Path to file with quiz")
+	secsForQuiz = flag.Int("secsForQuiz", 30, "Secs for quizing")
+	flag.Parse()
+
+  return filePath, secsForQuiz
+}
+
 func game(filePath string, secsForQuiz int) {
 	ch := make(chan bool)
 	answCh := make(chan int)
@@ -58,7 +66,7 @@ func game(filePath string, secsForQuiz int) {
 		panic(fmt.Errorf("Can't open file. Err: %w", err))
 	}
 
-	var problems Problems = FromFile(file)
+	var problems Problems = fromFile(file)
 	var totalRightAnswers int
 	var totalWrongAnswers int
 
@@ -94,9 +102,6 @@ func game(filePath string, secsForQuiz int) {
 }
 
 func main() {
-	filePath := flag.String("filePath", "problems.csv", "Path to file with quiz")
-	secsForQuiz := flag.Int("secsForQuiz", 30, "Secs for quizing")
-	flag.Parse()
-
+  filePath, secsForQuiz := prepareRules()
 	game(*filePath, *secsForQuiz)
 }
