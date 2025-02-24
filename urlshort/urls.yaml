@@ -1,0 +1,4 @@
+- path: /yaml
+  url: https://ru.wikipedia.org/wiki/YAML
+- path: /cat
+  url: https://ru.wikipedia.org/wiki/Cat
